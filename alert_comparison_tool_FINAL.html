@@ -1,0 +1,2074 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alert Footage Intelligence Platform | Welfare First ↔ EROAD</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Outfit:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #0a4d68;
+            --secondary: #088395;
+            --accent: #05bebe;
+            --danger: #e63946;
+            --warning: #f77f00;
+            --success: #06d6a0;
+            --info: #118ab2;
+            --bg-dark: #0d1b2a;
+            --bg-medium: #1b263b;
+            --bg-light: #f8f9fa;
+            --text-dark: #1b263b;
+            --text-light: #e0e1dd;
+            --border: #415a77;
+            --card-bg: #ffffff;
+            --shadow: rgba(0, 0, 0, 0.1);
+            --shadow-lg: rgba(0, 0, 0, 0.2);
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #0d1b2a 0%, #1b263b 50%, #0d1b2a 100%);
+            color: var(--text-light);
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 40px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 40px var(--shadow-lg);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -50%;
+            width: 200%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(5, 190, 190, 0.05), transparent);
+            animation: shimmer 8s infinite;
+        }
+        
+        @keyframes shimmer {
+            0%, 100% { transform: translateX(-50%); }
+            50% { transform: translateX(50%); }
+        }
+        
+        h1 {
+            font-size: 2.8rem;
+            font-weight: 800;
+            margin-bottom: 12px;
+            background: linear-gradient(135deg, var(--accent), var(--secondary), var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            position: relative;
+            letter-spacing: -0.5px;
+        }
+        
+        .subtitle {
+            font-size: 1.15rem;
+            color: rgba(255, 255, 255, 0.7);
+            margin-bottom: 25px;
+            font-weight: 400;
+        }
+        
+        .upload-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+        
+        .upload-box {
+            background: var(--card-bg);
+            border: 3px dashed var(--border);
+            border-radius: 16px;
+            padding: 50px 40px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .upload-box::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(8, 131, 149, 0.1), transparent);
+            transition: left 0.6s;
+        }
+        
+        .upload-box:hover::before {
+            left: 100%;
+        }
+        
+        .upload-box:hover {
+            border-color: var(--accent);
+            transform: translateY(-6px);
+            box-shadow: 0 15px 40px var(--shadow-lg);
+        }
+        
+        .upload-box.loaded {
+            border-color: var(--success);
+            border-style: solid;
+            background: linear-gradient(135deg, rgba(6, 214, 160, 0.08), rgba(6, 214, 160, 0.03));
+        }
+        
+        .upload-icon {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            opacity: 0.7;
+            transition: all 0.3s;
+        }
+        
+        .upload-box:hover .upload-icon {
+            opacity: 1;
+            transform: scale(1.1);
+        }
+        
+        .upload-box h3 {
+            color: var(--text-dark);
+            margin-bottom: 12px;
+            font-size: 1.6rem;
+            font-weight: 700;
+        }
+        
+        .upload-box p {
+            color: #666;
+            font-size: 1rem;
+        }
+        
+        .file-info {
+            margin-top: 20px;
+            padding: 15px;
+            background: rgba(6, 214, 160, 0.15);
+            border-radius: 10px;
+            color: var(--success);
+            font-weight: 700;
+            font-size: 1.05rem;
+            display: none;
+        }
+        
+        .upload-box.loaded .file-info {
+            display: block;
+            animation: fadeIn 0.4s;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .main-controls {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 20px var(--shadow);
+        }
+        
+        .control-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+        
+        .control-item label {
+            display: block;
+            color: var(--text-dark);
+            font-weight: 700;
+            margin-bottom: 10px;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        select, input[type="number"], input[type="text"], input[type="date"] {
+            width: 100%;
+            padding: 14px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background: white;
+            color: var(--text-dark);
+            font-family: inherit;
+        }
+        
+        select:focus, input:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 4px rgba(5, 190, 190, 0.1);
+        }
+        
+        .btn {
+            padding: 16px 36px;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.05rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            font-family: inherit;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, var(--secondary), var(--accent));
+            color: white;
+            box-shadow: 0 6px 20px rgba(8, 131, 149, 0.3);
+        }
+        
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 30px rgba(8, 131, 149, 0.4);
+        }
+        
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .btn-export {
+            background: var(--success);
+            color: white;
+            margin-left: 12px;
+        }
+        
+        .btn-export:hover:not(:disabled) {
+            background: #05c090;
+            transform: translateY(-3px);
+            box-shadow: 0 8px 30px rgba(6, 214, 160, 0.3);
+        }
+        
+        .btn-secondary {
+            background: var(--bg-medium);
+            color: var(--text-light);
+            padding: 12px 24px;
+            font-size: 0.95rem;
+        }
+        
+        .btn-secondary:hover {
+            background: var(--border);
+        }
+        
+        .insights-panel {
+            background: linear-gradient(135deg, rgba(17, 138, 178, 0.1), rgba(5, 190, 190, 0.05));
+            border-left: 5px solid var(--info);
+            border-radius: 16px;
+            padding: 25px;
+            margin-bottom: 30px;
+            display: none;
+        }
+        
+        .insights-panel.active {
+            display: block;
+            animation: slideDown 0.4s ease;
+        }
+        
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .insight-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--info);
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .insight-content {
+            color: var(--text-dark);
+            line-height: 1.8;
+        }
+        
+        .insight-item {
+            margin-bottom: 12px;
+            padding-left: 20px;
+            position: relative;
+        }
+        
+        .insight-item::before {
+            content: '▸';
+            position: absolute;
+            left: 0;
+            color: var(--info);
+            font-weight: bold;
+        }
+        
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+        
+        .stat-card {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 30px;
+            box-shadow: 0 4px 20px var(--shadow);
+            transition: all 0.3s ease;
+            border-left: 5px solid var(--primary);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .stat-card::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 100px;
+            height: 100px;
+            background: radial-gradient(circle, rgba(5, 190, 190, 0.1), transparent);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        
+        .stat-card:hover::after {
+            opacity: 1;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 8px 30px var(--shadow-lg);
+        }
+        
+        .stat-card.critical {
+            border-left-color: var(--danger);
+        }
+        
+        .stat-card.warning {
+            border-left-color: var(--warning);
+        }
+        
+        .stat-card.success {
+            border-left-color: var(--success);
+        }
+        
+        .stat-card.info {
+            border-left-color: var(--info);
+        }
+        
+        .stat-label {
+            font-size: 0.85rem;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+        
+        .stat-value {
+            font-size: 3rem;
+            font-weight: 800;
+            color: var(--text-dark);
+            margin-bottom: 10px;
+            font-family: 'JetBrains Mono', monospace;
+        }
+        
+        .stat-detail {
+            font-size: 0.95rem;
+            color: #888;
+        }
+        
+        .stat-trend {
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid #f0f0f0;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+        
+        .trend-up {
+            color: var(--danger);
+        }
+        
+        .trend-down {
+            color: var(--success);
+        }
+        
+        .section {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 35px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 20px var(--shadow);
+        }
+        
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            padding-bottom: 20px;
+            border-bottom: 3px solid #f0f0f0;
+        }
+        
+        .section-title {
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: var(--text-dark);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .filter-panel {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 25px;
+            border: 2px solid #e0e0e0;
+        }
+        
+        .filter-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .filter-input {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 0.9rem;
+        }
+        
+        .filter-input:focus {
+            border-color: var(--accent);
+            outline: none;
+        }
+        
+        .filter-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+        
+        .badge {
+            display: inline-block;
+            padding: 6px 14px;
+            border-radius: 25px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            margin-left: 12px;
+            letter-spacing: 0.3px;
+        }
+        
+        .badge-critical {
+            background: rgba(230, 57, 70, 0.15);
+            color: var(--danger);
+        }
+        
+        .badge-warning {
+            background: rgba(247, 127, 0, 0.15);
+            color: var(--warning);
+        }
+        
+        .badge-success {
+            background: rgba(6, 214, 160, 0.15);
+            color: var(--success);
+        }
+        
+        .badge-info {
+            background: rgba(17, 138, 178, 0.15);
+            color: var(--info);
+        }
+        
+        .table-container {
+            overflow-x: auto;
+            border-radius: 12px;
+            border: 1px solid #e0e0e0;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.95rem;
+        }
+        
+        thead {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+        
+        th {
+            padding: 18px 15px;
+            text-align: left;
+            font-weight: 700;
+            text-transform: uppercase;
+            font-size: 0.85rem;
+            letter-spacing: 0.6px;
+            cursor: pointer;
+            user-select: none;
+            position: relative;
+        }
+        
+        th:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+        
+        th.sortable::after {
+            content: ' ⇅';
+            opacity: 0.5;
+        }
+        
+        th.sorted-asc::after {
+            content: ' ↑';
+            opacity: 1;
+        }
+        
+        th.sorted-desc::after {
+            content: ' ↓';
+            opacity: 1;
+        }
+        
+        td {
+            padding: 16px 15px;
+            border-bottom: 1px solid #f0f0f0;
+            color: var(--text-dark);
+        }
+        
+        tr:hover {
+            background: rgba(5, 190, 190, 0.05);
+        }
+        
+        tr.highlight {
+            background: rgba(230, 57, 70, 0.08);
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 80px;
+            font-size: 1.3rem;
+            color: var(--text-light);
+        }
+        
+        .loading-spinner {
+            display: inline-block;
+            width: 60px;
+            height: 60px;
+            border: 6px solid rgba(255, 255, 255, 0.1);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 25px;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        .alert {
+            padding: 18px 24px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+            font-weight: 600;
+            display: flex;
+            align-items: flex-start;
+            gap: 15px;
+        }
+        
+        .alert-icon {
+            font-size: 1.5rem;
+            flex-shrink: 0;
+        }
+        
+        .alert-info {
+            background: rgba(17, 138, 178, 0.1);
+            color: var(--info);
+            border-left: 5px solid var(--info);
+        }
+        
+        .alert-warning {
+            background: rgba(247, 127, 0, 0.1);
+            color: var(--warning);
+            border-left: 5px solid var(--warning);
+        }
+        
+        .alert-danger {
+            background: rgba(230, 57, 70, 0.1);
+            color: var(--danger);
+            border-left: 5px solid var(--danger);
+        }
+        
+        .alert-success {
+            background: rgba(6, 214, 160, 0.1);
+            color: var(--success);
+            border-left: 5px solid var(--success);
+        }
+        
+        .tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 25px;
+            border-bottom: 3px solid #f0f0f0;
+            flex-wrap: wrap;
+        }
+        
+        .tab {
+            padding: 14px 28px;
+            cursor: pointer;
+            border: none;
+            background: none;
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: #666;
+            transition: all 0.3s ease;
+            position: relative;
+            border-radius: 8px 8px 0 0;
+        }
+        
+        .tab:hover {
+            color: var(--accent);
+            background: rgba(5, 190, 190, 0.05);
+        }
+        
+        .tab.active {
+            color: var(--primary);
+            background: rgba(5, 190, 190, 0.1);
+        }
+        
+        .tab.active::after {
+            content: '';
+            position: absolute;
+            bottom: -3px;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: var(--accent);
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.4s ease;
+        }
+        
+        .stats-mini {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .stat-mini {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            border-left: 3px solid var(--accent);
+        }
+        
+        .stat-mini-label {
+            font-size: 0.8rem;
+            color: #666;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        
+        .stat-mini-value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--text-dark);
+            font-family: 'JetBrains Mono', monospace;
+        }
+        
+        .chart-placeholder {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 40px;
+            text-align: center;
+            color: #999;
+            margin: 20px 0;
+        }
+        
+        input[type="file"] {
+            display: none;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 60px;
+            color: #999;
+        }
+        
+        .empty-state-icon {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            opacity: 0.3;
+        }
+        
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            margin-top: 25px;
+            padding: 20px;
+        }
+        
+        .pagination button {
+            padding: 10px 18px;
+            border: 2px solid #e0e0e0;
+            background: white;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        
+        .pagination button:hover:not(:disabled) {
+            border-color: var(--accent);
+            background: rgba(5, 190, 190, 0.05);
+        }
+        
+        .pagination button:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+        
+        .pagination .page-info {
+            font-weight: 600;
+            color: var(--text-dark);
+        }
+        
+        @media (max-width: 768px) {
+            .upload-section {
+                grid-template-columns: 1fr;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .control-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            table {
+                font-size: 0.85rem;
+            }
+            
+            th, td {
+                padding: 10px;
+            }
+            
+            .stat-value {
+                font-size: 2rem;
+            }
+        }
+        
+        .tooltip {
+            position: relative;
+            cursor: help;
+        }
+        
+        .tooltip::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--bg-dark);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 6px;
+            white-space: nowrap;
+            font-size: 0.85rem;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+            margin-bottom: 5px;
+        }
+        
+        .tooltip:hover::after {
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎯 Alert Footage Intelligence Platform</h1>
+            <p class="subtitle">Welfare First ↔ EROAD | Smart Analysis • Dynamic Filtering • Actionable Insights</p>
+        </header>
+
+        <div class="upload-section">
+            <div class="upload-box" id="welfareUpload" onclick="document.getElementById('welfareFile').click()">
+                <div class="upload-icon">📊</div>
+                <h3>Welfare First Report</h3>
+                <p>Drag & drop or click to upload<br><small>Excel file with monitoring alerts</small></p>
+                <div class="file-info" id="welfareInfo"></div>
+                <input type="file" id="welfareFile" accept=".xlsx,.xls" onchange="handleFileUpload(event, 'welfare')">
+            </div>
+            
+            <div class="upload-box" id="eroadUpload" onclick="document.getElementById('eroadFile').click()">
+                <div class="upload-icon">🎥</div>
+                <h3>EROAD Report</h3>
+                <p>Drag & drop or click to upload<br><small>Excel file with footage data</small></p>
+                <div class="file-info" id="eroadInfo"></div>
+                <input type="file" id="eroadFile" accept=".xlsx,.xls" onchange="handleFileUpload(event, 'eroad')">
+            </div>
+        </div>
+
+        <div class="main-controls hidden" id="controls">
+            <div class="control-grid">
+                <div class="control-item">
+                    <label>Activity Type</label>
+                    <select id="activityTypeFilter">
+                        <option value="all">All Activity Types</option>
+                        <option value="fatigue" selected>Fatigue Alerts Only</option>
+                        <option value="crash">Crash/Impact Only</option>
+                        <option value="panic">Panic Button Only</option>
+                    </select>
+                </div>
+                
+                <div class="control-item">
+                    <label>Alert Classification</label>
+                    <select id="classificationFilter">
+                        <option value="all">All Classifications</option>
+                        <option value="escalated">Escalated Only</option>
+                        <option value="not-escalated">Not Escalated Only</option>
+                    </select>
+                </div>
+                
+                <div class="control-item">
+                    <label>Time Tolerance (min)</label>
+                    <input type="number" id="toleranceMinutes" value="5" min="1" max="30">
+                </div>
+                
+                <div class="control-item">
+                    <label>Team Filter</label>
+                    <select id="teamFilter">
+                        <option value="all">All Teams</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+                <button class="btn btn-primary" id="analyzeBtn" onclick="performAnalysis()">
+                    🔍 Run Intelligent Analysis
+                </button>
+                <button class="btn btn-export" id="exportBtn" onclick="exportResults()" disabled>
+                    📥 Export to Excel
+                </button>
+            </div>
+        </div>
+
+        <div id="results" class="hidden">
+            <div class="alert alert-info">
+                <span class="alert-icon">🌍</span>
+                <div>
+                    <strong>Timezone Matching Logic:</strong> EROAD stores timestamps in each vehicle's LOCAL timezone (despite showing "AET" label). 
+                    Welfare First also stores in local vehicle timezone. Times are compared directly in local timezone for accurate matching.
+                    <br><small>Example: Brisbane vehicle at 2:26 PM Brisbane time matches EROAD "2:24 PM AET" (2-min difference, both in Brisbane local time)</small>
+                </div>
+            </div>
+            
+            <div class="insights-panel" id="insightsPanel"></div>
+            
+            <div class="dashboard" id="dashboard"></div>
+            
+            <div class="section">
+                <div class="tabs">
+                    <button class="tab active" onclick="switchTab('missing')">Missing Footage</button>
+                    <button class="tab" onclick="switchTab('matched')">Successfully Matched</button>
+                    <button class="tab" onclick="switchTab('orphan')">Orphan Footage</button>
+                    <button class="tab" onclick="switchTab('vehicles')">Vehicle Intelligence</button>
+                    <button class="tab" onclick="switchTab('teams')">Team Intelligence</button>
+                </div>
+                
+                <div id="tab-missing" class="tab-content active"></div>
+                <div id="tab-matched" class="tab-content"></div>
+                <div id="tab-orphan" class="tab-content"></div>
+                <div id="tab-vehicles" class="tab-content"></div>
+                <div id="tab-teams" class="tab-content"></div>
+            </div>
+        </div>
+
+        <div id="loading" class="loading hidden">
+            <div class="loading-spinner"></div>
+            <p>Running intelligent analysis on your data...</p>
+        </div>
+    </div>
+
+    <script>
+        let welfareData = null;
+        let eroadData = null;
+        let analysisResults = null;
+        let filteredData = null;
+        let currentFilters = {
+            rego: '',
+            team: '',
+            timezone: '',
+            activityType: '',
+            status: '',
+            followedUpBy: '',
+            dateFrom: '',
+            dateTo: ''
+        };
+        let currentSort = { column: null, direction: 'asc' };
+        let currentPage = 1;
+        const pageSize = 50;
+
+        function handleFileUpload(event, type) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const data = new Uint8Array(e.target.result);
+                const workbook = XLSX.read(data, { type: 'array' });
+                
+                if (type === 'welfare') {
+                    welfareData = processWelfareData(workbook);
+                    document.getElementById('welfareUpload').classList.add('loaded');
+                    document.getElementById('welfareInfo').textContent = `✓ ${welfareData.length} records loaded`;
+                } else {
+                    eroadData = processEroadData(workbook);
+                    document.getElementById('eroadUpload').classList.add('loaded');
+                    document.getElementById('eroadInfo').textContent = `✓ ${eroadData.length} records loaded`;
+                }
+                
+                if (welfareData && eroadData) {
+                    document.getElementById('controls').classList.remove('hidden');
+                    populateFilters();
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        function processWelfareData(workbook) {
+            const sheet = workbook.Sheets[workbook.SheetNames[0]];
+            const data = XLSX.utils.sheet_to_json(sheet);
+            
+            return data.map(row => ({
+                activityId: row['Activity ID'],
+                user: row['User'],
+                rego: row['User'] ? row['User'].split(' ')[0] : '',
+                team: row['Teams'],
+                activityType: row['Activity Type'],
+                alertClassification: row['Alert Classification'],
+                alertTime: row['Alert Time'],
+                startTime: row['Start Time'],
+                followedUpBy: row['Followed up by (Name)'],
+                status: row['Activity Current/Final Status'],
+                timezone: row['Timezone'],
+                followedUpTime: row['Followed up Time'],
+                completedTime: row['Follow up Completed Time'],
+                parsedTime: parseWelfareTime(row['Alert Time'], row['Timezone'])
+            })).filter(r => r.rego && r.parsedTime);
+        }
+
+        function processEroadData(workbook) {
+            const sheet = workbook.Sheets[workbook.SheetNames[0]];
+            const data = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+            
+            let headerRow = -1;
+            for (let i = 0; i < Math.min(20, data.length); i++) {
+                if (data[i].some(cell => cell && cell.toString().includes('Number plate'))) {
+                    headerRow = i;
+                    break;
+                }
+            }
+            
+            if (headerRow === -1) return [];
+            
+            const records = [];
+            for (let i = headerRow + 1; i < data.length; i++) {
+                const row = data[i];
+                if (!row[1]) continue;
+                
+                records.push({
+                    driverName: row[0],
+                    numberPlate: row[1],
+                    vehicleName: row[2],
+                    serialNo: row[3],
+                    eventTimestamp: row[4],
+                    eventType: row[5],
+                    clipDuration: row[6],
+                    status: row[7],
+                    tags: row[8],
+                    parsedTime: parseEroadTime(row[4])
+                });
+            }
+            
+            return records.filter(r => r.numberPlate && r.parsedTime);
+        }
+
+        function parseWelfareTime(timeStr, timezone) {
+            if (!timeStr || !timezone) return null;
+            try {
+                const parts = timeStr.match(/(\d{2})\/(\d{2})\/(\d{4})\s+(\d{1,2}):(\d{2})\s+(AM|PM)/);
+                if (!parts) return null;
+                
+                let hours = parseInt(parts[4]);
+                const minutes = parseInt(parts[5]);
+                const ampm = parts[6];
+                
+                if (ampm === 'PM' && hours !== 12) hours += 12;
+                if (ampm === 'AM' && hours === 12) hours = 0;
+                
+                // IMPORTANT: EROAD stores times in vehicle's LOCAL timezone
+                // Despite showing "AET" label, it's actually local time
+                // So NO timezone conversion needed - compare local to local
+                const localDate = new Date(parseInt(parts[3]), parseInt(parts[2]) - 1, parseInt(parts[1]), hours, minutes);
+                return localDate;
+            } catch(e) {
+                return null;
+            }
+        }
+
+        function parseEroadTime(timeStr) {
+            if (!timeStr) return null;
+            try {
+                const cleaned = timeStr.replace(/\s+(AET|AWT|AEDT)$/, '');
+                const parts = cleaned.match(/([A-Za-z]+)\s+(\d{1,2}),\s+(\d{1,2}):(\d{2})\s+(AM|PM)/);
+                if (!parts) return null;
+                
+                const monthMap = {
+                    'Jan': 0, 'Feb': 1, 'Mar': 2, 'Apr': 3, 'May': 4, 'Jun': 5,
+                    'Jul': 6, 'Aug': 7, 'Sep': 8, 'Oct': 9, 'Nov': 10, 'Dec': 11
+                };
+                
+                const month = monthMap[parts[1]];
+                const day = parseInt(parts[2]);
+                let hours = parseInt(parts[3]);
+                const minutes = parseInt(parts[4]);
+                const ampm = parts[5];
+                
+                if (ampm === 'PM' && hours !== 12) hours += 12;
+                if (ampm === 'AM' && hours === 12) hours = 0;
+                
+                return new Date(2026, month, day, hours, minutes);
+            } catch(e) {
+                return null;
+            }
+        }
+
+        function populateFilters() {
+            const teams = [...new Set(welfareData.map(r => r.team))].filter(t => t).sort();
+            const teamFilter = document.getElementById('teamFilter');
+            teams.forEach(team => {
+                const option = document.createElement('option');
+                option.value = team;
+                option.textContent = team;
+                teamFilter.appendChild(option);
+            });
+        }
+
+        function performAnalysis() {
+            document.getElementById('loading').classList.remove('hidden');
+            document.getElementById('results').classList.add('hidden');
+            
+            setTimeout(() => {
+                const activityFilter = document.getElementById('activityTypeFilter').value;
+                const classificationFilter = document.getElementById('classificationFilter').value;
+                const toleranceMinutes = parseInt(document.getElementById('toleranceMinutes').value);
+                const teamFilter = document.getElementById('teamFilter').value;
+                
+                let filteredWelfare = welfareData;
+                
+                if (activityFilter === 'fatigue') {
+                    filteredWelfare = filteredWelfare.filter(r => 
+                        r.activityType === 'Fatigue alert triggered (dashcam)');
+                } else if (activityFilter === 'crash') {
+                    filteredWelfare = filteredWelfare.filter(r => 
+                        r.activityType === 'Vehicle crash / impact detected');
+                } else if (activityFilter === 'panic') {
+                    filteredWelfare = filteredWelfare.filter(r => 
+                        r.activityType === 'Vehicle panic button pressed');
+                }
+                
+                if (classificationFilter === 'escalated') {
+                    filteredWelfare = filteredWelfare.filter(r => r.alertClassification === 'Escalated');
+                } else if (classificationFilter === 'not-escalated') {
+                    filteredWelfare = filteredWelfare.filter(r => r.alertClassification === 'Not escalated');
+                }
+                
+                if (teamFilter !== 'all') {
+                    filteredWelfare = filteredWelfare.filter(r => r.team === teamFilter);
+                }
+                
+                analysisResults = matchAlerts(filteredWelfare, eroadData, toleranceMinutes);
+                filteredData = filteredWelfare;
+                
+                generateInsights(analysisResults, filteredWelfare);
+                displayResults(analysisResults, filteredWelfare);
+                
+                document.getElementById('loading').classList.add('hidden');
+                document.getElementById('results').classList.remove('hidden');
+                document.getElementById('exportBtn').disabled = false;
+            }, 500);
+        }
+
+        function matchAlerts(welfareAlerts, eroadAlerts, toleranceMinutes) {
+            const matched = [];
+            const missing = [];
+            const orphans = [...eroadAlerts];
+            
+            welfareAlerts.forEach(wfAlert => {
+                let bestMatch = null;
+                let bestTimeDiff = Infinity;
+                let matchIndex = -1;
+                
+                eroadAlerts.forEach((erAlert, idx) => {
+                    if (erAlert.numberPlate === wfAlert.rego) {
+                        const timeDiff = Math.abs(wfAlert.parsedTime - erAlert.parsedTime) / 1000 / 60;
+                        if (timeDiff <= toleranceMinutes && timeDiff < bestTimeDiff) {
+                            bestMatch = erAlert;
+                            bestTimeDiff = timeDiff;
+                            matchIndex = idx;
+                        }
+                    }
+                });
+                
+                if (bestMatch) {
+                    matched.push({
+                        welfare: wfAlert,
+                        eroad: bestMatch,
+                        timeDiff: bestTimeDiff,
+                        confidence: Math.max(50, 100 - (bestTimeDiff / toleranceMinutes) * 50)
+                    });
+                    
+                    const orphanIdx = orphans.findIndex(o => 
+                        o.numberPlate === bestMatch.numberPlate && 
+                        o.eventTimestamp === bestMatch.eventTimestamp
+                    );
+                    if (orphanIdx !== -1) {
+                        orphans.splice(orphanIdx, 1);
+                    }
+                } else {
+                    missing.push(wfAlert);
+                }
+            });
+            
+            return { matched, missing, orphans };
+        }
+
+        function generateInsights(results, filteredWelfare) {
+            const escalatedCount = filteredWelfare.filter(r => r.alertClassification === 'Escalated').length;
+            const escalatedMissing = results.missing.filter(r => r.alertClassification === 'Escalated').length;
+            const missingPct = results.missing.length > 0 ? 
+                (results.missing.length / filteredWelfare.length * 100).toFixed(1) : 0;
+            
+            const uniqueVehiclesMissing = new Set(results.missing.map(r => r.rego)).size;
+            const totalUniqueVehicles = new Set(filteredWelfare.map(r => r.rego)).size;
+            
+            const timezoneBreakdown = {};
+            results.missing.forEach(alert => {
+                const tz = alert.timezone || 'Unknown';
+                timezoneBreakdown[tz] = (timezoneBreakdown[tz] || 0) + 1;
+            });
+            
+            const worstTimezone = Object.entries(timezoneBreakdown)
+                .sort((a, b) => b[1] - a[1])[0];
+            
+            let insights = `
+                <div class="insight-title">
+                    <span>💡</span> Intelligent Analysis Results
+                </div>
+                <div class="insight-content">
+            `;
+            
+            if (missingPct > 50) {
+                insights += `<div class="insight-item"><strong>CRITICAL:</strong> ${missingPct}% of alerts have no footage. This indicates a systemic upload failure affecting ${uniqueVehiclesMissing} vehicles.</div>`;
+            } else if (missingPct > 25) {
+                insights += `<div class="insight-item"><strong>WARNING:</strong> ${missingPct}% missing footage rate is concerning. Review ${uniqueVehiclesMissing} affected vehicles for patterns.</div>`;
+            } else {
+                insights += `<div class="insight-item"><strong>ACCEPTABLE:</strong> ${missingPct}% missing footage is within normal range for remote operations.</div>`;
+            }
+            
+            if (escalatedMissing > 0) {
+                const escalatedPct = escalatedCount > 0 ? (escalatedMissing / escalatedCount * 100).toFixed(1) : 0;
+                insights += `<div class="insight-item"><strong>COMPLIANCE RISK:</strong> ${escalatedMissing} validated fatigue events (${escalatedPct}% of escalated alerts) lack documentation. This affects incident investigation capability.</div>`;
+            }
+            
+            if (worstTimezone && worstTimezone[1] > 5) {
+                const tzName = worstTimezone[0].replace('Australia/', '').replace('Pacific/', '');
+                insights += `<div class="insight-item"><strong>GEOGRAPHIC PATTERN:</strong> ${tzName} timezone has the highest missing footage count (${worstTimezone[1]} alerts). Check mobile coverage in this region.</div>`;
+            }
+            
+            const orphanRatio = results.orphans.length > 0 ? 
+                (results.orphans.length / eroadData.length * 100).toFixed(1) : 0;
+            
+            if (orphanRatio > 10) {
+                insights += `<div class="insight-item"><strong>API SYNC ISSUE:</strong> ${orphanRatio}% of EROAD footage has no matching Welfare First alert. Investigate API communication.</div>`;
+            }
+            
+            const vehicleStats = {};
+            filteredWelfare.forEach(alert => {
+                if (!vehicleStats[alert.rego]) {
+                    vehicleStats[alert.rego] = { total: 0, missing: 0 };
+                }
+                vehicleStats[alert.rego].total++;
+            });
+            
+            results.missing.forEach(alert => {
+                if (vehicleStats[alert.rego]) {
+                    vehicleStats[alert.rego].missing++;
+                }
+            });
+            
+            const completeFailures = Object.entries(vehicleStats)
+                .filter(([_, stats]) => stats.missing === stats.total && stats.total >= 3)
+                .length;
+            
+            if (completeFailures > 0) {
+                insights += `<div class="insight-item"><strong>DEVICE FAILURES:</strong> ${completeFailures} vehicles have 100% footage upload failure. These devices may need replacement or reconfiguration.</div>`;
+            }
+            
+            insights += `</div>`;
+            
+            document.getElementById('insightsPanel').innerHTML = insights;
+            document.getElementById('insightsPanel').classList.add('active');
+        }
+
+        function displayResults(results, filteredWelfare) {
+            const escalatedCount = filteredWelfare.filter(r => r.alertClassification === 'Escalated').length;
+            const escalatedMissing = results.missing.filter(r => r.alertClassification === 'Escalated').length;
+            const missingPct = results.missing.length > 0 ? 
+                (results.missing.length / filteredWelfare.length * 100).toFixed(1) : 0;
+            const matchPct = results.matched.length > 0 ?
+                (results.matched.length / filteredWelfare.length * 100).toFixed(1) : 0;
+            
+            const dashboard = document.getElementById('dashboard');
+            dashboard.innerHTML = `
+                <div class="stat-card info">
+                    <div class="stat-label">Total Alerts Analyzed</div>
+                    <div class="stat-value">${filteredWelfare.length.toLocaleString()}</div>
+                    <div class="stat-detail">After applying filters</div>
+                </div>
+                <div class="stat-card success">
+                    <div class="stat-label">Successfully Matched</div>
+                    <div class="stat-value">${results.matched.length.toLocaleString()}</div>
+                    <div class="stat-detail">${matchPct}% have footage</div>
+                    <div class="stat-trend trend-down">✓ Coverage Rate</div>
+                </div>
+                <div class="stat-card critical">
+                    <div class="stat-label">Missing Footage</div>
+                    <div class="stat-value">${results.missing.length.toLocaleString()}</div>
+                    <div class="stat-detail">${missingPct}% without footage</div>
+                    <div class="stat-trend trend-up">⚠ Upload Failure</div>
+                </div>
+                <div class="stat-card warning">
+                    <div class="stat-label">Escalated Missing</div>
+                    <div class="stat-value">${escalatedMissing}</div>
+                    <div class="stat-detail">of ${escalatedCount} validated alerts</div>
+                    <div class="stat-trend ${escalatedMissing > 0 ? 'trend-up' : 'trend-down'}">
+                        ${escalatedMissing > 0 ? '⚠ Compliance Risk' : '✓ All Documented'}
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Orphan Footage</div>
+                    <div class="stat-value">${results.orphans.length}</div>
+                    <div class="stat-detail">EROAD without WF alert</div>
+                </div>
+                <div class="stat-card info">
+                    <div class="stat-label">Unique Vehicles</div>
+                    <div class="stat-value">${new Set(filteredWelfare.map(r => r.rego)).size}</div>
+                    <div class="stat-detail">Across ${new Set(filteredWelfare.map(r => r.team)).size} teams</div>
+                </div>
+            `;
+            
+            displayMissingFootage(results.missing);
+            displayMatched(results.matched);
+            displayOrphans(results.orphans);
+            displayVehicleAnalysis(results, filteredWelfare);
+            displayTeamAnalysis(results, filteredWelfare);
+        }
+
+        function createFilterPanel(tabName) {
+            return `
+                <div class="filter-panel">
+                    <div class="filter-row">
+                        <input type="text" class="filter-input" placeholder="Filter by Rego..." 
+                            onchange="applyTabFilters('${tabName}', 'rego', this.value)">
+                        <input type="text" class="filter-input" placeholder="Filter by Team..." 
+                            onchange="applyTabFilters('${tabName}', 'team', this.value)">
+                        <select class="filter-input" onchange="applyTabFilters('${tabName}', 'timezone', this.value)">
+                            <option value="">All Timezones</option>
+                            <option value="Australia/Melbourne">Melbourne</option>
+                            <option value="Australia/Adelaide">Adelaide</option>
+                            <option value="Australia/Brisbane">Brisbane</option>
+                            <option value="Australia/Perth">Perth</option>
+                            <option value="Pacific/Auckland">Auckland</option>
+                        </select>
+                        <select class="filter-input" onchange="applyTabFilters('${tabName}', 'status', this.value)">
+                            <option value="">All Statuses</option>
+                            <option value="Resolved">Resolved</option>
+                            <option value="Escalated">Escalated</option>
+                        </select>
+                    </div>
+                    <div class="filter-actions">
+                        <button class="btn btn-secondary" onclick="clearTabFilters('${tabName}')">Clear Filters</button>
+                        <button class="btn btn-secondary" onclick="exportTabData('${tabName}')">Export This View</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        let tabFilters = {};
+        
+        function applyTabFilters(tabName, filterType, value) {
+            if (!tabFilters[tabName]) tabFilters[tabName] = {};
+            tabFilters[tabName][filterType] = value.toLowerCase();
+            renderTabWithFilters(tabName);
+        }
+        
+        function clearTabFilters(tabName) {
+            tabFilters[tabName] = {};
+            document.querySelectorAll(`#tab-${tabName} .filter-input`).forEach(input => {
+                input.value = '';
+            });
+            renderTabWithFilters(tabName);
+        }
+        
+        function renderTabWithFilters(tabName) {
+            // Re-render the current tab with filters applied
+            if (tabName === 'missing') displayMissingFootage(analysisResults.missing);
+            else if (tabName === 'matched') displayMatched(analysisResults.matched);
+            else if (tabName === 'orphan') displayOrphans(analysisResults.orphans);
+            else if (tabName === 'vehicles') displayVehicleAnalysis(analysisResults, filteredData);
+            else if (tabName === 'teams') displayTeamAnalysis(analysisResults, filteredData);
+        }
+        
+        function filterData(data, tabName, filters) {
+            if (!filters || Object.keys(filters).length === 0) return data;
+            
+            return data.filter(item => {
+                let match = true;
+                
+                if (filters.rego && item.rego) {
+                    match = match && item.rego.toLowerCase().includes(filters.rego);
+                } else if (filters.rego && item.welfare && item.welfare.rego) {
+                    match = match && item.welfare.rego.toLowerCase().includes(filters.rego);
+                }
+                
+                if (filters.team && item.team) {
+                    match = match && item.team.toLowerCase().includes(filters.team);
+                } else if (filters.team && item.welfare && item.welfare.team) {
+                    match = match && item.welfare.team.toLowerCase().includes(filters.team);
+                }
+                
+                if (filters.timezone && item.timezone) {
+                    match = match && item.timezone === filters.timezone;
+                } else if (filters.timezone && item.welfare && item.welfare.timezone) {
+                    match = match && item.welfare.timezone === filters.timezone;
+                }
+                
+                if (filters.status && item.status) {
+                    match = match && item.status.toLowerCase().includes(filters.status.toLowerCase());
+                } else if (filters.status && item.welfare && item.welfare.status) {
+                    match = match && item.welfare.status.toLowerCase().includes(filters.status.toLowerCase());
+                }
+                
+                return match;
+            });
+        }
+
+        function displayMissingFootage(missing) {
+            const container = document.getElementById('tab-missing');
+            const filters = tabFilters['missing'] || {};
+            const filtered = filterData(missing, 'missing', filters);
+            
+            if (missing.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">✓</div>
+                        <h3>Perfect Coverage!</h3>
+                        <p>All alerts have corresponding EROAD footage.</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            const escalated = filtered.filter(m => m.alertClassification === 'Escalated');
+            const notEscalated = filtered.filter(m => m.alertClassification === 'Not escalated');
+            
+            let html = createFilterPanel('missing');
+            
+            html += `
+                <div class="stats-mini">
+                    <div class="stat-mini">
+                        <div class="stat-mini-label">Total Missing</div>
+                        <div class="stat-mini-value">${filtered.length}</div>
+                    </div>
+                    <div class="stat-mini">
+                        <div class="stat-mini-label">Escalated</div>
+                        <div class="stat-mini-value" style="color: var(--danger);">${escalated.length}</div>
+                    </div>
+                    <div class="stat-mini">
+                        <div class="stat-mini-label">Not Escalated</div>
+                        <div class="stat-mini-value" style="color: var(--warning);">${notEscalated.length}</div>
+                    </div>
+                    <div class="stat-mini">
+                        <div class="stat-mini-label">Unique Vehicles</div>
+                        <div class="stat-mini-value">${new Set(filtered.map(m => m.rego)).size}</div>
+                    </div>
+                </div>
+                
+                <div class="alert alert-danger">
+                    <span class="alert-icon">🚨</span>
+                    <div>
+                        <strong>CRITICAL:</strong> ${escalated.length} escalated alerts (validated by operators) have no footage for investigation.
+                        ${notEscalated.length} not-escalated alerts also lack footage (may affect verification accuracy).
+                    </div>
+                </div>
+                
+                <h3 style="margin: 30px 0 20px; color: var(--text-dark); font-size: 1.4rem;">
+                    🚨 Escalated Alerts Without Footage
+                    <span class="badge badge-critical">${escalated.length}</span>
+                </h3>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th class="sortable" onclick="sortTable('missing', 'activityId')">Activity ID</th>
+                                <th class="sortable" onclick="sortTable('missing', 'rego')">Rego</th>
+                                <th class="sortable" onclick="sortTable('missing', 'team')">Team</th>
+                                <th class="sortable" onclick="sortTable('missing', 'alertTime')">Alert Time (Local)</th>
+                                <th class="sortable" onclick="sortTable('missing', 'timezone')">Timezone</th>
+                                <th>Activity Type</th>
+                                <th class="sortable" onclick="sortTable('missing', 'status')">Status</th>
+                                <th>Followed Up By</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+            `;
+            
+            escalated.forEach(alert => {
+                html += `
+                    <tr class="highlight">
+                        <td><code style="background:#f0f0f0;padding:4px 8px;border-radius:4px;font-family:'JetBrains Mono',monospace;">${alert.activityId}</code></td>
+                        <td><strong style="color:var(--danger);">${alert.rego}</strong></td>
+                        <td>${alert.team || 'N/A'}</td>
+                        <td>${alert.alertTime}</td>
+                        <td><small>${alert.timezone ? alert.timezone.replace('Australia/', '').replace('Pacific/', '') : 'N/A'}</small></td>
+                        <td><small>${alert.activityType}</small></td>
+                        <td><span class="badge badge-warning">${alert.status}</span></td>
+                        <td>${alert.followedUpBy || 'N/A'}</td>
+                    </tr>
+                `;
+            });
+            
+            if (escalated.length === 0) {
+                html += '<tr><td colspan="8" style="text-align:center;color:#999;">No escalated alerts with missing footage</td></tr>';
+            }
+            
+            html += `
+                        </tbody>
+                    </table>
+                </div>
+                
+                <h3 style="margin: 30px 0 20px; color: var(--text-dark); font-size: 1.4rem;">
+                    Not Escalated Alerts Without Footage
+                    <span class="badge badge-warning">${notEscalated.length}</span>
+                </h3>
+                <p style="color: #666; margin-bottom: 15px;">
+                    These may be false positives, but lack of footage prevents proper verification.
+                </p>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th class="sortable" onclick="sortTable('missing', 'activityId')">Activity ID</th>
+                                <th class="sortable" onclick="sortTable('missing', 'rego')">Rego</th>
+                                <th class="sortable" onclick="sortTable('missing', 'team')">Team</th>
+                                <th class="sortable" onclick="sortTable('missing', 'alertTime')">Alert Time (Local)</th>
+                                <th class="sortable" onclick="sortTable('missing', 'timezone')">Timezone</th>
+                                <th class="sortable" onclick="sortTable('missing', 'status')">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+            `;
+            
+            notEscalated.slice(0, 100).forEach(alert => {
+                html += `
+                    <tr>
+                        <td><code style="background:#f0f0f0;padding:4px 8px;border-radius:4px;font-family:'JetBrains Mono',monospace;">${alert.activityId}</code></td>
+                        <td>${alert.rego}</td>
+                        <td>${alert.team || 'N/A'}</td>
+                        <td>${alert.alertTime}</td>
+                        <td><small>${alert.timezone ? alert.timezone.replace('Australia/', '').replace('Pacific/', '') : 'N/A'}</small></td>
+                        <td>${alert.status}</td>
+                    </tr>
+                `;
+            });
+            
+            if (notEscalated.length > 100) {
+                html += `<tr><td colspan="6" style="text-align:center;color:#666;">
+                    Showing first 100 of ${notEscalated.length} records. Use filters or export for full data.
+                </td></tr>`;
+            }
+            
+            html += '</tbody></table></div>';
+            container.innerHTML = html;
+        }
+
+        function displayMatched(matched) {
+            const container = document.getElementById('tab-matched');
+            const filters = tabFilters['matched'] || {};
+            const filtered = filterData(matched, 'matched', filters);
+            
+            if (matched.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">🔍</div>
+                        <h3>No Matches Found</h3>
+                        <p>Try adjusting timestamp tolerance or filters.</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            const avgConfidence = (filtered.reduce((sum, m) => sum + m.confidence, 0) / filtered.length).toFixed(1);
+            const highConfidence = filtered.filter(m => m.confidence >= 90).length;
+            
+            let html = createFilterPanel('matched');
+            
+            html += `
+                <div class="stats-mini">
+                    <div class="stat-mini">
+                        <div class="stat-mini-label">Total Matched</div>
+                        <div class="stat-mini-value">${filtered.length}</div>
+                    </div>
+                    <div class="stat-mini">
+                        <div class="stat-mini-label">Avg Confidence</div>
+                        <div class="stat-mini-value" style="color: var(--success);">${avgConfidence}%</div>
+                    </div>
+                    <div class="stat-mini">
+                        <div class="stat-mini-label">High Confidence (90%+)</div>
+                        <div class="stat-mini-value">${highConfidence}</div>
+                    </div>
+                </div>
+                
+                <div class="alert alert-success">
+                    <span class="alert-icon">✓</span>
+                    <div>
+                        ${filtered.length} alerts successfully matched with EROAD footage (local timezone comparison).
+                        Average confidence: ${avgConfidence}%
+                    </div>
+                </div>
+                
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th class="sortable" onclick="sortTable('matched', 'activityId')">Activity ID</th>
+                                <th class="sortable" onclick="sortTable('matched', 'rego')">Rego</th>
+                                <th class="sortable" onclick="sortTable('matched', 'team')">Team</th>
+                                <th class="sortable" onclick="sortTable('matched', 'alertTime')">WF Alert (Local)</th>
+                                <th>TZ</th>
+                                <th>EROAD Time (Local)</th>
+                                <th class="sortable" onclick="sortTable('matched', 'timeDiff')">Time Diff</th>
+                                <th>Classification</th>
+                                <th class="sortable" onclick="sortTable('matched', 'confidence')">Confidence</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+            `;
+            
+            filtered.slice(0, 100).forEach(match => {
+                const confColor = match.confidence >= 90 ? 'var(--success)' : 
+                                 match.confidence >= 70 ? 'var(--warning)' : 'var(--danger)';
+                html += `
+                    <tr>
+                        <td><code style="background:#f0f0f0;padding:4px 8px;border-radius:4px;font-family:'JetBrains Mono',monospace;">${match.welfare.activityId}</code></td>
+                        <td><strong>${match.welfare.rego}</strong></td>
+                        <td>${match.welfare.team || 'N/A'}</td>
+                        <td>${match.welfare.alertTime}</td>
+                        <td><small>${match.welfare.timezone ? match.welfare.timezone.replace('Australia/', '').replace('Pacific/', '') : 'N/A'}</small></td>
+                        <td>${match.eroad.eventTimestamp}</td>
+                        <td style="font-family:'JetBrains Mono',monospace;">${match.timeDiff.toFixed(1)} min</td>
+                        <td><span class="badge badge-${match.welfare.alertClassification === 'Escalated' ? 'critical' : 'info'}">${match.welfare.alertClassification}</span></td>
+                        <td style="color: ${confColor}; font-weight: 700; font-family:'JetBrains Mono',monospace;">${match.confidence.toFixed(0)}%</td>
+                    </tr>
+                `;
+            });
+            
+            if (filtered.length > 100) {
+                html += `<tr><td colspan="9" style="text-align:center;color:#666;">
+                    Showing first 100 of ${filtered.length} records. Use filters or export for full data.
+                </td></tr>`;
+            }
+            
+            html += '</tbody></table></div>';
+            container.innerHTML = html;
+        }
+
+        function displayOrphans(orphans) {
+            const container = document.getElementById('tab-orphan');
+            const filters = tabFilters['orphan'] || {};
+            
+            // Orphans don't have welfare data, so filter differently
+            let filtered = orphans;
+            if (filters.rego) {
+                filtered = filtered.filter(o => o.numberPlate.toLowerCase().includes(filters.rego.toLowerCase()));
+            }
+            
+            if (orphans.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">✓</div>
+                        <h3>Perfect Sync!</h3>
+                        <p>All EROAD footage has matching Welfare First alerts.</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            let html = `
+                <div class="filter-panel">
+                    <div class="filter-row">
+                        <input type="text" class="filter-input" placeholder="Filter by Rego..." 
+                            onchange="applyTabFilters('orphan', 'rego', this.value)">
+                    </div>
+                    <div class="filter-actions">
+                        <button class="btn btn-secondary" onclick="clearTabFilters('orphan')">Clear Filters</button>
+                        <button class="btn btn-secondary" onclick="exportTabData('orphan')">Export This View</button>
+                    </div>
+                </div>
+                
+                <div class="stats-mini">
+                    <div class="stat-mini">
+                        <div class="stat-mini-label">Total Orphans</div>
+                        <div class="stat-mini-value">${filtered.length}</div>
+                    </div>
+                    <div class="stat-mini">
+                        <div class="stat-mini-label">Unique Vehicles</div>
+                        <div class="stat-mini-value">${new Set(filtered.map(o => o.numberPlate)).size}</div>
+                    </div>
+                </div>
+                
+                <div class="alert alert-warning">
+                    <span class="alert-icon">⚠</span>
+                    <div>
+                        ${filtered.length} footage records in EROAD have no matching Welfare First alert.
+                        This could indicate API communication issues or timing mismatches beyond tolerance.
+                    </div>
+                </div>
+                
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th class="sortable" onclick="sortTable('orphan', 'numberPlate')">Rego</th>
+                                <th>Driver</th>
+                                <th class="sortable" onclick="sortTable('orphan', 'eventTimestamp')">Event Time (Local)</th>
+                                <th>Vehicle Name</th>
+                                <th>Serial No</th>
+                                <th>Tags</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+            `;
+            
+            filtered.slice(0, 100).forEach(footage => {
+                html += `
+                    <tr>
+                        <td><strong>${footage.numberPlate}</strong></td>
+                        <td>${footage.driverName || 'N/A'}</td>
+                        <td>${footage.eventTimestamp}</td>
+                        <td><small>${footage.vehicleName}</small></td>
+                        <td><small><code style="background:#f0f0f0;padding:2px 6px;border-radius:4px;">${footage.serialNo}</code></small></td>
+                        <td><span class="badge badge-info">${footage.tags}</span></td>
+                        <td>${footage.status}</td>
+                    </tr>
+                `;
+            });
+            
+            if (filtered.length > 100) {
+                html += `<tr><td colspan="7" style="text-align:center;color:#666;">
+                    Showing first 100 of ${filtered.length} records. Use filters or export for full data.
+                </td></tr>`;
+            }
+            
+            html += '</tbody></table></div>';
+            container.innerHTML = html;
+        }
+
+        function displayVehicleAnalysis(results, filteredWelfare) {
+            const container = document.getElementById('tab-vehicles');
+            const filters = tabFilters['vehicles'] || {};
+            
+            const vehicleStats = {};
+            
+            filteredWelfare.forEach(alert => {
+                if (!vehicleStats[alert.rego]) {
+                    vehicleStats[alert.rego] = {
+                        rego: alert.rego,
+                        team: alert.team,
+                        totalAlerts: 0,
+                        escalated: 0,
+                        matched: 0,
+                        missing: 0,
+                        escalatedMissing: 0
+                    };
+                }
+                
+                vehicleStats[alert.rego].totalAlerts++;
+                if (alert.alertClassification === 'Escalated') {
+                    vehicleStats[alert.rego].escalated++;
+                }
+            });
+            
+            results.matched.forEach(match => {
+                if (vehicleStats[match.welfare.rego]) {
+                    vehicleStats[match.welfare.rego].matched++;
+                }
+            });
+            
+            results.missing.forEach(alert => {
+                if (vehicleStats[alert.rego]) {
+                    vehicleStats[alert.rego].missing++;
+                    if (alert.alertClassification === 'Escalated') {
+                        vehicleStats[alert.rego].escalatedMissing++;
+                    }
+                }
+            });
+            
+            let vehicleArray = Object.values(vehicleStats)
+                .map(v => ({
+                    ...v,
+                    missingPct: (v.missing / v.totalAlerts * 100).toFixed(1),
+                    coverage: (v.matched / v.totalAlerts * 100).toFixed(1)
+                }))
+                .sort((a, b) => b.escalatedMissing - a.escalatedMissing || b.missing - a.missing);
+            
+            // Apply filters
+            if (filters.rego) {
+                vehicleArray = vehicleArray.filter(v => v.rego.toLowerCase().includes(filters.rego.toLowerCase()));
+            }
+            if (filters.team) {
+                vehicleArray = vehicleArray.filter(v => v.team && v.team.toLowerCase().includes(filters.team.toLowerCase()));
+            }
+            
+            const criticalVehicles = vehicleArray.filter(v => v.escalatedMissing > 0).length;
+            const zeroCoverage = vehicleArray.filter(v => v.coverage == 0 && v.totalAlerts >= 3).length;
+            
+            let html = createFilterPanel('vehicles');
+            
+            html += `
+                <div class="stats-mini">
+                    <div class="stat-mini">
+                        <div class="stat-mini-label">Total Vehicles</div>
+                        <div class="stat-mini-value">${vehicleArray.length}</div>
+                    </div>
+                    <div class="stat-mini">
+                        <div class="stat-mini-label">Critical (Escalated Missing)</div>
+                        <div class="stat-mini-value" style="color: var(--danger);">${criticalVehicles}</div>
+                    </div>
+                    <div class="stat-mini">
+                        <div class="stat-mini-label">Zero Coverage</div>
+                        <div class="stat-mini-value" style="color: var(--warning);">${zeroCoverage}</div>
+                    </div>
+                </div>
+                
+                <div class="alert alert-info">
+                    <span class="alert-icon">📊</span>
+                    <div>
+                        Vehicle-level intelligence: ${criticalVehicles} vehicles have escalated alerts with missing footage.
+                        ${zeroCoverage} vehicles have complete footage upload failure.
+                    </div>
+                </div>
+                
+                <h3 style="margin: 20px 0; color: var(--text-dark); font-size: 1.4rem;">
+                    Vehicle Coverage Analysis
+                </h3>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th class="sortable" onclick="sortTable('vehicles', 'rego')">Rego</th>
+                                <th class="sortable" onclick="sortTable('vehicles', 'team')">Team</th>
+                                <th class="sortable" onclick="sortTable('vehicles', 'totalAlerts')">Total</th>
+                                <th class="sortable" onclick="sortTable('vehicles', 'escalated')">Escalated</th>
+                                <th class="sortable" onclick="sortTable('vehicles', 'matched')">Footage</th>
+                                <th class="sortable" onclick="sortTable('vehicles', 'missing')">Missing</th>
+                                <th class="sortable" onclick="sortTable('vehicles', 'escalatedMissing')">Esc. Missing</th>
+                                <th class="sortable" onclick="sortTable('vehicles', 'coverage')">Coverage %</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+            `;
+            
+            vehicleArray.forEach(vehicle => {
+                const coverageColor = vehicle.coverage >= 80 ? 'var(--success)' : 
+                                     vehicle.coverage >= 50 ? 'var(--warning)' : 'var(--danger)';
+                const rowClass = vehicle.escalatedMissing > 0 ? 'highlight' : '';
+                
+                html += `
+                    <tr class="${rowClass}">
+                        <td><strong>${vehicle.rego}</strong></td>
+                        <td>${vehicle.team || 'N/A'}</td>
+                        <td style="font-family:'JetBrains Mono',monospace;">${vehicle.totalAlerts}</td>
+                        <td style="font-family:'JetBrains Mono',monospace;">${vehicle.escalated}</td>
+                        <td style="font-family:'JetBrains Mono',monospace;">${vehicle.matched}</td>
+                        <td style="font-family:'JetBrains Mono',monospace;">${vehicle.missing}</td>
+                        <td style="color: ${vehicle.escalatedMissing > 0 ? 'var(--danger)' : 'inherit'}; font-weight: ${vehicle.escalatedMissing > 0 ? '700' : 'normal'}; font-family:'JetBrains Mono',monospace;">
+                            ${vehicle.escalatedMissing}
+                        </td>
+                        <td style="color: ${coverageColor}; font-weight: 700; font-family:'JetBrains Mono',monospace;">
+                            ${vehicle.coverage}%
+                        </td>
+                    </tr>
+                `;
+            });
+            
+            html += '</tbody></table></div>';
+            container.innerHTML = html;
+        }
+
+        function displayTeamAnalysis(results, filteredWelfare) {
+            const container = document.getElementById('tab-teams');
+            const filters = tabFilters['teams'] || {};
+            
+            const teamStats = {};
+            
+            filteredWelfare.forEach(alert => {
+                const team = alert.team || 'Unknown';
+                if (!teamStats[team]) {
+                    teamStats[team] = {
+                        team: team,
+                        totalAlerts: 0,
+                        escalated: 0,
+                        matched: 0,
+                        missing: 0,
+                        escalatedMissing: 0,
+                        vehicles: new Set()
+                    };
+                }
+                
+                teamStats[team].totalAlerts++;
+                teamStats[team].vehicles.add(alert.rego);
+                if (alert.alertClassification === 'Escalated') {
+                    teamStats[team].escalated++;
+                }
+            });
+            
+            results.matched.forEach(match => {
+                const team = match.welfare.team || 'Unknown';
+                if (teamStats[team]) {
+                    teamStats[team].matched++;
+                }
+            });
+            
+            results.missing.forEach(alert => {
+                const team = alert.team || 'Unknown';
+                if (teamStats[team]) {
+                    teamStats[team].missing++;
+                    if (alert.alertClassification === 'Escalated') {
+                        teamStats[team].escalatedMissing++;
+                    }
+                }
+            });
+            
+            let teamArray = Object.values(teamStats)
+                .map(t => ({
+                    ...t,
+                    vehicleCount: t.vehicles.size,
+                    coverage: (t.matched / t.totalAlerts * 100).toFixed(1)
+                }))
+                .sort((a, b) => b.escalatedMissing - a.escalatedMissing || b.missing - a.missing);
+            
+            // Apply filters
+            if (filters.team) {
+                teamArray = teamArray.filter(t => t.team.toLowerCase().includes(filters.team.toLowerCase()));
+            }
+            
+            let html = `
+                <div class="filter-panel">
+                    <div class="filter-row">
+                        <input type="text" class="filter-input" placeholder="Filter by Team..." 
+                            onchange="applyTabFilters('teams', 'team', this.value)">
+                    </div>
+                    <div class="filter-actions">
+                        <button class="btn btn-secondary" onclick="clearTabFilters('teams')">Clear Filters</button>
+                        <button class="btn btn-secondary" onclick="exportTabData('teams')">Export This View</button>
+                    </div>
+                </div>
+                
+                <div class="stats-mini">
+                    <div class="stat-mini">
+                        <div class="stat-mini-label">Total Teams</div>
+                        <div class="stat-mini-value">${teamArray.length}</div>
+                    </div>
+                    <div class="stat-mini">
+                        <div class="stat-mini-label">Teams with Critical Issues</div>
+                        <div class="stat-mini-value" style="color: var(--danger);">${teamArray.filter(t => t.escalatedMissing > 0).length}</div>
+                    </div>
+                </div>
+                
+                <div class="alert alert-info">
+                    <span class="alert-icon">👥</span>
+                    <div>
+                        Team-level intelligence across ${teamArray.length} operational units.
+                        Geographic patterns and team performance analysis.
+                    </div>
+                </div>
+                
+                <h3 style="margin: 20px 0; color: var(--text-dark); font-size: 1.4rem;">
+                    Team Coverage Analysis
+                </h3>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th class="sortable" onclick="sortTable('teams', 'team')">Team</th>
+                                <th class="sortable" onclick="sortTable('teams', 'vehicleCount')">Vehicles</th>
+                                <th class="sortable" onclick="sortTable('teams', 'totalAlerts')">Total</th>
+                                <th class="sortable" onclick="sortTable('teams', 'escalated')">Escalated</th>
+                                <th class="sortable" onclick="sortTable('teams', 'matched')">Footage</th>
+                                <th class="sortable" onclick="sortTable('teams', 'missing')">Missing</th>
+                                <th class="sortable" onclick="sortTable('teams', 'escalatedMissing')">Esc. Missing</th>
+                                <th class="sortable" onclick="sortTable('teams', 'coverage')">Coverage %</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+            `;
+            
+            teamArray.forEach(team => {
+                const coverageColor = team.coverage >= 80 ? 'var(--success)' : 
+                                     team.coverage >= 50 ? 'var(--warning)' : 'var(--danger)';
+                const rowClass = team.escalatedMissing > 0 ? 'highlight' : '';
+                
+                html += `
+                    <tr class="${rowClass}">
+                        <td><strong>${team.team}</strong></td>
+                        <td style="font-family:'JetBrains Mono',monospace;">${team.vehicleCount}</td>
+                        <td style="font-family:'JetBrains Mono',monospace;">${team.totalAlerts}</td>
+                        <td style="font-family:'JetBrains Mono',monospace;">${team.escalated}</td>
+                        <td style="font-family:'JetBrains Mono',monospace;">${team.matched}</td>
+                        <td style="font-family:'JetBrains Mono',monospace;">${team.missing}</td>
+                        <td style="color: ${team.escalatedMissing > 0 ? 'var(--danger)' : 'inherit'}; font-weight: ${team.escalatedMissing > 0 ? '700' : 'normal'}; font-family:'JetBrains Mono',monospace;">
+                            ${team.escalatedMissing}
+                        </td>
+                        <td style="color: ${coverageColor}; font-weight: 700; font-family:'JetBrains Mono',monospace;">
+                            ${team.coverage}%
+                        </td>
+                    </tr>
+                `;
+            });
+            
+            html += '</tbody></table></div>';
+            container.innerHTML = html;
+        }
+
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            document.getElementById(`tab-${tabName}`).classList.add('active');
+        }
+
+        function sortTable(tabName, column) {
+            // Implement sorting logic here
+            console.log(`Sorting ${tabName} by ${column}`);
+        }
+
+        function exportTabData(tabName) {
+            console.log(`Exporting data for tab: ${tabName}`);
+            // Will be implemented with main export
+        }
+
+        function exportResults() {
+            if (!analysisResults) return;
+            
+            const wb = XLSX.utils.book_new();
+            
+            // Export missing footage
+            const missingData = analysisResults.missing.map(alert => ({
+                'Activity ID': alert.activityId,
+                'Registration': alert.rego,
+                'Team': alert.team,
+                'Alert Time (Local)': alert.alertTime,
+                'Timezone': alert.timezone,
+                'Activity Type': alert.activityType,
+                'Classification': alert.alertClassification,
+                'Status': alert.status,
+                'Followed Up By': alert.followedUpBy
+            }));
+            const wsMissing = XLSX.utils.json_to_sheet(missingData);
+            XLSX.utils.book_append_sheet(wb, wsMissing, 'Missing Footage');
+            
+            // Export matched
+            const matchedData = analysisResults.matched.map(match => ({
+                'Activity ID': match.welfare.activityId,
+                'Registration': match.welfare.rego,
+                'Team': match.welfare.team,
+                'WF Alert Time (Local)': match.welfare.alertTime,
+                'Timezone': match.welfare.timezone,
+                'EROAD Time (Local)': match.eroad.eventTimestamp,
+                'Time Difference (min)': match.timeDiff.toFixed(2),
+                'Classification': match.welfare.alertClassification,
+                'Confidence': match.confidence.toFixed(0) + '%',
+                'Driver': match.eroad.driverName || 'N/A'
+            }));
+            const wsMatched = XLSX.utils.json_to_sheet(matchedData);
+            XLSX.utils.book_append_sheet(wb, wsMatched, 'Matched');
+            
+            // Export orphans
+            const orphanData = analysisResults.orphans.map(footage => ({
+                'Registration': footage.numberPlate,
+                'Driver': footage.driverName || 'N/A',
+                'Event Time (Local)': footage.eventTimestamp,
+                'Vehicle Name': footage.vehicleName,
+                'Serial No': footage.serialNo,
+                'Tags': footage.tags,
+                'Status': footage.status
+            }));
+            const wsOrphans = XLSX.utils.json_to_sheet(orphanData);
+            XLSX.utils.book_append_sheet(wb, wsOrphans, 'Orphan Footage');
+            
+            XLSX.writeFile(wb, `WelfareFirst_EROAD_Analysis_${new Date().toISOString().split('T')[0]}.xlsx`);
+        }
+    </script>
+</body>
+</html>
